@@ -3,8 +3,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
-const { requireAuthApi } = require('../middleware/requireAuth');
-const { requireActiveSubscriptionApi } = require('../middleware/requireActiveSubscription');
+const { requireAuth } = require('./requireAuth');
+const { requireActiveSubscription } = require('./requireActiveSubscription');
 
 const router = express.Router();
 const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'videos');
