@@ -5,10 +5,10 @@ const FileStore = require('session-file-store')(session);
 const path = require('path');
 const passport = require('./auth');
 
-const authRoutes = require('./routes/auth');
-const streamRoutes = require('./routes/stream');
-const paymentRoutes = require('./routes/payment');
-const adminRoutes = require('./routes/admin');
+const authRoutes = require('./auth');
+const streamRoutes = require('./stream');
+const paymentRoutes = require('./payment');
+const adminRoutes = require('./admin');
 const { requireAuth } = require('./middleware/requireAuth');
 const { requireActiveSubscription } = require('./middleware/requireActiveSubscription');
 const { requireAdmin } = require('./middleware/requireAdmin');
