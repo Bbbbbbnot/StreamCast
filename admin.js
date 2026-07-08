@@ -1,6 +1,6 @@
 const express = require('express');
-const db = require('../db');
-const { requireAdminApi } = require('../middleware/requireAdmin');
+const db = require('./db');
+const { requireAdminApi } = require('./requireAdmin');
 
 const router = express.Router();
 
