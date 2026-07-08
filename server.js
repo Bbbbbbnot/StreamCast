@@ -60,7 +60,7 @@ app.get('/admin.html', requireAdmin, (req, res) => {
 });
 
 // Qolgan statik fayllar (login, register, css va h.k.)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 app.use('/admin-login.html', express.static(path.join(__dirname, 'admin-public', 'admin-login.html')));
 
 app.get('/', (req, res) => res.redirect('/login.html'));
