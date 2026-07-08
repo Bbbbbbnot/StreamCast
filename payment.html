@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>To'lov — StreamCast</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container" style="max-width: 520px;">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 8L20 4V20L4 16V8Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/><circle cx="4" cy="12" r="2" fill="white"/></svg>
+    </div>
+    <div class="brand-name">Stream<span>Cast</span></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">To'lov markazi</div>
+    <h2>Obunani yangilash</h2>
+
+    <div class="chat-row">
+      <div class="chat-avatar">SC</div>
+      <div class="chat-msg" style="flex:1;">
+        <p style="margin-bottom:8px;">Salom! Xizmatdan foydalanishni davom ettirish uchun quyidagi kartaga oylik <strong id="amountText">30 000 so'm</strong> to'lov qiling:</p>
+        <div class="chat-card-number" id="cardNumberText">•••• •••• •••• ••••</div>
+        <p style="font-size:13px; margin:0;" id="cardHolderText"></p>
+      </div>
+    </div>
+
+    <div class="chat-row">
+      <div class="chat-avatar">SC</div>
+      <div class="chat-msg" style="flex:1;">
+        <p style="margin:0;">To'lovni amalga oshirgach, chek (skrinshot) rasmini shu yerga yuklang. Men uni tekshirib, tasdiqlagach obunangiz darhol yangilanadi.</p>
+      </div>
+    </div>
+
+    <label style="margin-top:18px;">Chek rasmi</label>
+    <input type="file" id="receiptFile" accept="image/*">
+    <div class="error-text" id="errorMsg"></div>
+    <button class="btn-signal" onclick="submitReceipt()">Chekni yuborish</button>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">To'lovlar tarixi</div>
+    <div id="historyList"><div class="empty-state">Hali to'lov yuborilmagan</div></div>
+  </div>
+</div>
+
+<script>
+async function loadPaymentInfo() {
+  const res = await fetch('/api/payment/info');
+  if (res.status === 401) { window.location.href = '/login.html'; return; }
+  const data = await res.json();
+  document.getElementById('cardNumberText').innerText = data.cardNumber;
+  document.getElementById('cardHolderText').innerText = data.cardHolder;
+  document.getElementById('amountText').innerText = data.amount.toLocaleString('uz-UZ') + " so'm";
+}
+
+async function submitReceipt() {
+  const fileInput = document.getElementById('receiptFile');
+  const errorEl = document.getElementById('errorMsg');
+  errorEl.innerText = '';
+  if (!fileInput.files.length) { errorEl.innerText = 'Chek rasmini tanlang'; return; }
+  const formData = new FormData();
+  formData.append('receipt', fileInput.files[0]);
+  const res = await fetch('/api/payment/submit', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (data.success) {
+    fileInput.value = '';
+    loadHistory();
+  } else {
+    errorEl.innerText = data.error || 'Xatolik yuz berdi';
+  }
+}
+
+function statusBadge(status) {
+  if (status === 'approved') return '<span class="badge badge-approved">Tasdiqlangan</span>';
+  if (status === 'rejected') return '<span class="badge badge-rejected">Rad etilgan</span>';
+  return '<span class="badge badge-pending">Kutilmoqda</span>';
+}
+
+async function loadHistory() {
+  const res = await fetch('/api/payment/history');
+  const rows = await res.json();
+  const container = document.getElementById('historyList');
+  if (!rows.length) { container.innerHTML = '<div class="empty-state">Hali to\'lov yuborilmagan</div>'; return; }
+  container.innerHTML = rows.map(p => `
+    <div class="card-flat" style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:13px;">${new Date(p.created_at).toLocaleString('uz-UZ')}</div>
+        <div style="font-family: var(--font-mono); font-size:13px; color: var(--text-dim);">${p.amount.toLocaleString('uz-UZ')} so'm</div>
+      </div>
+      ${statusBadge(p.status)}
+    </div>
+  `).join('');
+}
+
+loadPaymentInfo();
+loadHistory();
+</script>
+</body>
+</html>

@@ -1,52 +1,69 @@
+const express = require('express');
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
-const db = require('./db');
+const db = require('../db');
+const { getAccessStatus } = require('../middleware/requireActiveSubscription');
 
-function trialEndDate() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1); // 1 kunlik bepul sinov
-  return d.toISOString();
-}
+const router = express.Router();
 
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID || 'MISSING_CLIENT_ID',
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'MISSING_CLIENT_SECRET',
-  callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/auth/google/callback'
-}, (accessToken, refreshToken, profile, done) => {
-  try {
-    let user = db.findUserByGoogleId(profile.id);
-    if (!user) {
-      const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
-      user = db.createUser({ google_id: profile.id, email, trial_end: trialEndDate() });
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login.html' }),
+  (req, res) => {
+    if (!req.user.username) {
+      return res.redirect('/set-username.html');
     }
-    done(null, user);
-  } catch (err) {
-    done(err);
+    res.redirect('/dashboard.html');
   }
-}));
+);
 
-passport.use(new LocalStrategy((username, password, done) => {
-  try {
-    const user = db.findUserByUsername(username);
-    if (!user || !user.password_hash) return done(null, false, { message: 'Login yoki parol xato' });
-    const match = bcrypt.compareSync(password, user.password_hash);
-    if (!match) return done(null, false, { message: 'Login yoki parol xato' });
-    done(null, user);
-  } catch (err) {
-    done(err);
+router.post('/api/set-username', (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Tizimga kirilmagan' });
   }
-}));
-
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser((id, done) => {
-  try {
-    const user = db.findUserById(id);
-    done(null, user);
-  } catch (err) {
-    done(err);
+  const { username, password } = req.body;
+  if (!username || !password || username.length < 3 || password.length < 4) {
+    return res.status(400).json({ error: 'Foydalanuvchi nomi (min 3) va parol (min 4) kerak' });
   }
+  const existing = db.findUserByUsername(username);
+  if (existing) {
+    return res.status(400).json({ error: 'Bu foydalanuvchi nomi band' });
+  }
+  const hash = bcrypt.hashSync(password, 10);
+  db.setUsername(req.user.id, username, hash);
+  res.json({ success: true });
 });
 
-module.exports = passport;
+router.post('/api/login', (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) return res.status(500).json({ error: 'Server xatosi' });
+    if (!user) return res.status(401).json({ error: (info && info.message) || 'Login yoki parol xato' });
+    req.logIn(user, (err) => {
+      if (err) return res.status(500).json({ error: 'Server xatosi' });
+      res.json({ success: true });
+    });
+  })(req, res, next);
+});
+
+router.post('/api/logout', (req, res) => {
+  req.logout(() => {
+    res.json({ success: true });
+  });
+});
+
+router.get('/api/me', (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Tizimga kirilmagan' });
+  }
+  const user = db.findUserById(req.user.id);
+  const status = getAccessStatus(user);
+  res.json({
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    ...status
+  });
+});
+
+module.exports = router;

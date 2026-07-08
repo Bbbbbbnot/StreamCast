@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin kirish — StreamCast</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+  <div class="brand">
+    <div class="brand-mark" style="background: linear-gradient(135deg, var(--gold), #c9822a); box-shadow: 0 6px 16px -4px rgba(234,176,74,0.5);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6V11C4 15.5 7.4 19.7 12 21C16.6 19.7 20 15.5 20 11V6L12 2Z" stroke="#2b1900" stroke-width="1.6"/></svg>
+    </div>
+    <div class="brand-name">Stream<span style="color:var(--gold)">Cast</span> Admin</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Cheklangan kirish</div>
+    <h2>Admin panel</h2>
+    <form id="adminLoginForm" style="margin-top:16px;">
+      <label>Login</label>
+      <input type="text" id="username" required>
+      <label>Parol</label>
+      <input type="password" id="password" required>
+      <div class="error-text" id="errorMsg"></div>
+      <button type="submit" class="btn-gold" style="width:100%;">Kirish</button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const errorEl = document.getElementById('errorMsg');
+  const res = await fetch('/api/admin/login', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  if (data.success) window.location.href = '/admin.html';
+  else errorEl.innerText = data.error || 'Xatolik';
+});
+</script>
+</body>
+</html>

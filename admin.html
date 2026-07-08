@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin panel — StreamCast</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand" style="margin-bottom:0;">
+      <div class="brand-mark" style="background: linear-gradient(135deg, var(--gold), #c9822a);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6V11C4 15.5 7.4 19.7 12 21C16.6 19.7 20 15.5 20 11V6L12 2Z" stroke="#2b1900" stroke-width="1.6"/></svg>
+      </div>
+      <div class="brand-name" style="font-size:15px;">Admin</div>
+    </div>
+  </div>
+  <a data-tab="payments" class="active" onclick="showTab('payments')">💳 To'lovlar</a>
+  <a data-tab="users" onclick="showTab('users')">👥 Foydalanuvchilar</a>
+  <a data-tab="income" onclick="showTab('income')">📊 Kirimlar</a>
+  <a onclick="logout()" style="margin-top:20px; color: var(--signal);">↩ Chiqish</a>
+</div>
+
+<div class="main-content">
+
+  <!-- TO'LOVLAR -->
+  <div class="tab-panel active" id="tab-payments">
+    <div class="topbar">
+      <h2>To'lovlar</h2>
+      <div class="pill-nav">
+        <button class="active" onclick="loadPayments('pending', this)">Kutilmoqda</button>
+        <button onclick="loadPayments('approved', this)">Tasdiqlangan</button>
+        <button onclick="loadPayments('rejected', this)">Rad etilgan</button>
+        <button onclick="loadPayments('', this)">Barchasi</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table id="paymentsTable">
+        <thead><tr><th>Chek</th><th>Foydalanuvchi</th><th>Summa</th><th>Sana</th><th>Holat</th><th></th></tr></thead>
+        <tbody id="paymentsBody"></tbody>
+      </table>
+      <div class="empty-state" id="paymentsEmpty" style="display:none;">To'lovlar topilmadi</div>
+    </div>
+  </div>
+
+  <!-- FOYDALANUVCHILAR -->
+  <div class="tab-panel" id="tab-users">
+    <div class="topbar"><h2>Foydalanuvchilar</h2></div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <thead><tr><th>Username</th><th>Email</th><th>Ro'yxatdan o'tgan</th><th>Holat</th></tr></thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KIRIMLAR -->
+  <div class="tab-panel" id="tab-income">
+    <div class="topbar"><h2>Kirimlar</h2></div>
+    <div class="stat-grid">
+      <div class="card">
+        <div class="stat-number" id="statTotal">0</div>
+        <div class="stat-label">Jami tushum (so'm)</div>
+      </div>
+      <div class="card">
+        <div class="stat-number" id="statPaying">0</div>
+        <div class="stat-label">Faol to'lovchilar</div>
+      </div>
+      <div class="card">
+        <div class="stat-number" id="statUsers">0</div>
+        <div class="stat-label">Jami foydalanuvchilar</div>
+      </div>
+      <div class="card">
+        <div class="stat-number" id="statPending">0</div>
+        <div class="stat-label">Kutilayotgan cheklar</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">Oylik taqsimot</div>
+      <table>
+        <thead><tr><th>Oy</th><th>To'lovlar soni</th><th>Summa</th></tr></thead>
+        <tbody id="monthlyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Chek rasmini kattalashtirib ko'rish -->
+<div id="imageModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:50; align-items:center; justify-content:center; cursor:zoom-out;" onclick="this.style.display='none'">
+  <img id="modalImg" style="max-width:90%; max-height:90%; border-radius:10px;">
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.sidebar a[data-tab]').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.sidebar a[data-tab="${name}"]`).classList.add('active');
+  if (name === 'payments') loadPayments('pending');
+  if (name === 'users') loadUsers();
+  if (name === 'income') loadIncome();
+}
+
+function badge(status) {
+  if (status === 'approved') return '<span class="badge badge-approved">Tasdiqlangan</span>';
+  if (status === 'rejected') return '<span class="badge badge-rejected">Rad etilgan</span>';
+  return '<span class="badge badge-pending">Kutilmoqda</span>';
+}
+
+async function loadPayments(status, btn) {
+  if (btn) {
+    document.querySelectorAll('.pill-nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const res = await fetch('/api/admin/payments' + (status ? `?status=${status}` : ''));
+  if (res.status === 401) { window.location.href = '/admin-login.html'; return; }
+  const rows = await res.json();
+  const body = document.getElementById('paymentsBody');
+  document.getElementById('paymentsEmpty').style.display = rows.length ? 'none' : 'block';
+  body.innerHTML = rows.map(p => `
+    <tr>
+      <td><img class="receipt-thumb" src="/uploads/receipts/${p.receipt_path}" onclick="openImage('/uploads/receipts/${p.receipt_path}')"></td>
+      <td>${p.username || '—'}<br><span style="color:var(--text-faint); font-size:11px;">${p.email || ''}</span></td>
+      <td style="font-family: var(--font-mono);">${p.amount.toLocaleString('uz-UZ')}</td>
+      <td>${new Date(p.created_at).toLocaleString('uz-UZ')}</td>
+      <td>${badge(p.status)}</td>
+      <td>
+        ${p.status === 'pending' ? `
+          <button class="btn-mint" style="padding:6px 10px; font-size:12px;" onclick="approvePayment(${p.id})">Tasdiqlash</button>
+          <button class="btn-outline" style="padding:6px 10px; font-size:12px; width:auto;" onclick="rejectPayment(${p.id})">Rad etish</button>
+        ` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openImage(src) {
+  document.getElementById('modalImg').src = src;
+  document.getElementById('imageModal').style.display = 'flex';
+}
+
+async function approvePayment(id) {
+  const res = await fetch(`/api/admin/payments/${id}/approve`, { method: 'POST' });
+  const data = await res.json();
+  if (data.success) loadPayments('pending');
+  else alert('Xato: ' + data.error);
+}
+
+async function rejectPayment(id) {
+  const res = await fetch(`/api/admin/payments/${id}/reject`, { method: 'POST' });
+  const data = await res.json();
+  if (data.success) loadPayments('pending');
+  else alert('Xato: ' + data.error);
+}
+
+async function loadUsers() {
+  const res = await fetch('/api/admin/users');
+  const rows = await res.json();
+  document.getElementById('usersBody').innerHTML = rows.map(u => `
+    <tr>
+      <td>${u.username || '—'}</td>
+      <td>${u.email || '—'}</td>
+      <td>${new Date(u.created_at).toLocaleDateString('uz-UZ')}</td>
+      <td>${u.hasAccess ? '<span class="badge badge-approved">Faol</span>' : '<span class="badge badge-rejected">Muddat tugagan</span>'}</td>
+    </tr>
+  `).join('');
+}
+
+async function loadIncome() {
+  const res = await fetch('/api/admin/income');
+  const data = await res.json();
+  document.getElementById('statTotal').innerText = data.total.toLocaleString('uz-UZ');
+  document.getElementById('statPaying').innerText = data.payingUsers;
+  document.getElementById('statUsers').innerText = data.totalUsers;
+  document.getElementById('statPending').innerText = data.pendingPayments;
+  document.getElementById('monthlyBody').innerHTML = data.byMonth.map(m => `
+    <tr><td>${m.month}</td><td>${m.count}</td><td style="font-family:var(--font-mono);">${m.total.toLocaleString('uz-UZ')} so'm</td></tr>
+  `).join('') || '<tr><td colspan="3" style="color:var(--text-faint);">Ma\'lumot yo\'q</td></tr>';
+}
+
+async function logout() {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  window.location.href = '/admin-login.html';
+}
+
+loadPayments('pending');
+</script>
+</body>
+</html>
