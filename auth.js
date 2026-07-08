@@ -1,7 +1,7 @@
 const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
-const db = require('../db');
+const db = require('./db');
 const { getAccessStatus } = require('../middleware/requireActiveSubscription');
 
 const router = express.Router();
