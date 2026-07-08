@@ -1,0 +1,10 @@
+node_modules
+.env
+.git
+data/app.json
+data/sessions
+uploads/receipts/*
+uploads/videos/*
+!uploads/receipts/.gitkeep
+!uploads/videos/.gitkeep
+*.log
