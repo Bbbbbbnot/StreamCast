@@ -41,22 +41,22 @@ app.use(adminRoutes);
 // ---- Sahifalarni himoyalash ----
 // Dashboard (video yuklash/stream) - kirish + faol obuna kerak
 app.get('/dashboard.html', requireAuth, requireActiveSubscription, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 // To'lov sahifasi - faqat kirish kerak (obuna talab qilinmaydi, chunki shu yerda to'laydi)
 app.get('/payment.html', requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'payment.html'));
+  res.sendFile(path.join(__dirname, 'payment.html'));
 });
 
 // Username o'rnatish sahifasi
 app.get('/set-username.html', requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'set-username.html'));
+  res.sendFile(path.join(__dirname, 'set-username.html'));
 });
 
 // Admin panel
 app.get('/admin.html', requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin-public', 'admin.html'));
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // Qolgan statik fayllar (login, register, css va h.k.)
