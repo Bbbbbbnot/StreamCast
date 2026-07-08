@@ -7,8 +7,7 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-  const user = db.findUserById(id);
-  done(null, user);
+  done(null, db.findUserById(id));
 });
 
 passport.use(
@@ -19,13 +18,17 @@ passport.use(
       callbackURL: process.env.GOOGLE_CALLBACK_URL
     },
     (accessToken, refreshToken, profile, done) => {
+
       let user = db.findUserByGoogleId(profile.id);
 
       if (!user) {
-        user = db.createGoogleUser({
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + 7);
+
+        user = db.createUser({
           google_id: profile.id,
-          email: profile.emails?.[0]?.value || '',
-          name: profile.displayName
+          email: profile.emails?.[0]?.value,
+          trial_end: trialEnd.toISOString()
         });
       }
 
