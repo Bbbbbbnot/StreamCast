@@ -2,8 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { requireAuthApi } = require('../middleware/requireAuth');
-const db = require('../db');
+require('./requireAuth')
+require('./db')
 
 const router = express.Router();
 const RECEIPT_DIR = path.join(__dirname, '..', 'uploads', 'receipts');
