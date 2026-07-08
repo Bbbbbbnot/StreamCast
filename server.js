@@ -9,10 +9,10 @@ const authRoutes = require('./auth');
 const streamRoutes = require('./stream');
 const paymentRoutes = require('./payment');
 const adminRoutes = require('./admin');
-const { requireAuth } = require('./middleware/requireAuth');
-const { requireActiveSubscription } = require('./middleware/requireActiveSubscription');
-const { requireAdmin } = require('./middleware/requireAdmin');
 
+const { requireAuth } = require('./requireAuth');
+const { requireActiveSubscription } = require('./requireActiveSubscription');
+const { requireAdmin } = require('./requireAdmin');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
