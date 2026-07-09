@@ -23,7 +23,7 @@ passport.use(
 
       if (!user) {
         const trialEnd = new Date();
-        trialEnd.setDate(trialEnd.getDate() + 7);
+        trialEnd.setDate(trialEnd.getDate() + 1);
 
         user = db.createUser({
           google_id: profile.id,
