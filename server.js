@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
-const FileStore = require('session-file-store')(session);
 const path = require('path');
 const passport = require('./passport');
 const authRoutes = require('./auth');
@@ -19,11 +18,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  store: new FileStore({ path: path.join(__dirname, 'data', 'sessions') }),
   secret: process.env.SESSION_SECRET || 'iltimos-buni-ozgartiring',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 kun
+  cookie: {
+    maxAge: 30 * 24 * 60 * 60 * 1000, //30 kun
+    httpOnly: true
+  }
 }));
 
 app.use(passport.initialize());
