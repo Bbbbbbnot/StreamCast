@@ -24,9 +24,7 @@ passport.use(
       let user = db.findUserByGoogleId(profile.id);
 
       if (!user) {
-        const trialEnd = new Date();
-        trialEnd.setDate(trialEnd.getDate() + 1);
-
+       const trialEnd = new Date(Date.now() + 60 * 1000);
         user = db.createUser({
           google_id: profile.id,
           email: profile.emails?.[0]?.value,
