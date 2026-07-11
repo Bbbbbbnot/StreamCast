@@ -55,6 +55,25 @@ router.get('/api/admin/users', requireAdminApi, (req, res) => {
   });
   res.json(withStatus);
 });
+router.post('/api/admin/users/:id/plan', requireAdminApi, (req, res) => {
+  const { plan } = req.body;
+
+  if (!['free', 'pro'].includes(plan)) {
+    return res.status(400).json({ error: 'Noto‘g‘ri tarif' });
+  }
+
+  const user = db.setUserPlan(req.params.id, plan);
+
+  if (!user) {
+    return res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
+  }
+
+  res.json({
+    success: true,
+    plan: user.plan,
+    max_streams: user.max_streams
+  });
+});
 
 // ---- Kirimlar bo'limi ----
 router.get('/api/admin/income', requireAdminApi, (req, res) => {
