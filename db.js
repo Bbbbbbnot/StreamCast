@@ -45,8 +45,15 @@ function createUser({ google_id = null, email = null, trial_end = null }) {
     password_hash: null,
     created_at: new Date().toISOString(),
     trial_end,
-    paid_until: null
+    paid_until: null,
+
+    // Tarif
+    plan: 'free',
+
+    // Stream limiti
+    max_streams: 1
   };
+
   state.users.push(user);
   save();
   return user;
@@ -159,6 +166,21 @@ function getIncomeStats() {
 
   return { total, byMonth, totalUsers, payingUsers, pendingPayments };
 }
+function setUserPlan(id, plan) {
+  const user = findUserById(id);
+  if (!user) return null;
+
+  user.plan = plan;
+
+  if (plan === 'pro') {
+    user.max_streams = 5;
+  } else {
+    user.max_streams = 1;
+  }
+
+  save();
+  return user;
+}
 
 module.exports = {
   findUserByGoogleId,
@@ -174,5 +196,6 @@ module.exports = {
   getAllPayments,
   approvePayment,
   rejectPayment,
-  getIncomeStats
+  getIncomeStats,
+  setUserPlan
 };
