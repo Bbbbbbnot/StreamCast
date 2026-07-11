@@ -77,7 +77,13 @@ function updateUserPaidUntil(id, paidUntilIso) {
 }
 
 function getAllUsers() {
-  return [...state.users].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return [...state.users]
+    .map(u => ({
+      ...u,
+      plan: u.plan || 'free',
+      max_streams: u.max_streams || 1
+    }))
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
 
 // ---------------- PAYMENTS ----------------
