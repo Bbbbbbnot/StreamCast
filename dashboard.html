@@ -19,6 +19,17 @@
   </div>
 
   <div class="card" id="trialCard" style="display:none;">
+    <div class="card" id="planCard">
+  <div class="eyebrow">Tarif</div>
+
+  <div id="planInfo" style="font-size:15px;">
+    Yuklanmoqda...
+  </div>
+
+  <div id="streamLimitInfo"
+       style="margin-top:10px; color: var(--text-dim);">
+  </div>
+</div>
     <div class="eyebrow">Hisob holati</div>
     <div id="accessInfo" style="font-size: 14px;"></div>
   </div>
@@ -51,19 +62,60 @@
 <script>
 async function checkAccess() {
   const res = await fetch('/api/me');
-  if (res.status === 401) { window.location.href = '/login.html'; return; }
+
+  if (res.status === 401) {
+    window.location.href = '/login.html';
+    return;
+  }
+
   const data = await res.json();
+
   const card = document.getElementById('trialCard');
   const info = document.getElementById('accessInfo');
+
+  const planInfo = document.getElementById('planInfo');
+  const streamLimitInfo = document.getElementById('streamLimitInfo');
+
   card.style.display = 'block';
-  if (data.trialActive) {
-    const hrs = Math.max(0, Math.round((new Date(data.trialEnd) - new Date()) / 3600000));
-    info.innerHTML = `<span class="badge badge-pending">Bepul sinov</span> — taxminan ${hrs} soat qoldi`;
-  } else if (data.subscriptionActive) {
-    const d = new Date(data.paidUntil);
-    info.innerHTML = `<span class="badge badge-approved">Faol obuna</span> — ${d.toLocaleDateString('uz-UZ')} gacha`;
+
+  const plan = data.plan || 'free';
+
+  if (plan === 'pro') {
+    planInfo.innerHTML =
+      '<span class="badge badge-approved">PRO</span>';
+
+    streamLimitInfo.innerHTML =
+      'Maksimal streamlar: <b>5 ta</b>';
   } else {
-    info.innerHTML = `<span class="badge badge-rejected">Muddat tugagan</span> — <a href="/payment.html">to'lov qilish</a>`;
+    planInfo.innerHTML =
+      '<span class="badge badge-pending">FREE</span>';
+
+    streamLimitInfo.innerHTML =
+      'Maksimal streamlar: <b>1 ta</b>';
+  }
+
+  if (data.trialActive) {
+    const hrs = Math.max(
+      0,
+      Math.round(
+        (new Date(data.trialEnd) - new Date()) / 3600000
+      )
+    );
+
+    info.innerHTML =
+      `<span class="badge badge-pending">Bepul sinov</span> — taxminan ${hrs} soat qoldi`;
+
+  } else if (data.subscriptionActive) {
+
+    const d = new Date(data.paidUntil);
+
+    info.innerHTML =
+      `<span class="badge badge-approved">Faol obuna</span> — ${d.toLocaleDateString('uz-UZ')} gacha`;
+
+  } else {
+
+    info.innerHTML =
+      `<span class="badge badge-rejected">Muddat tugagan</span> — <a href="/payment.html">to'lov qilish</a>`;
   }
 }
 
