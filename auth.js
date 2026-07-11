@@ -58,12 +58,16 @@ router.get('/api/me', (req, res) => {
   }
   const user = db.findUserById(req.user.id);
   const status = getAccessStatus(user);
-  res.json({
-    id: user.id,
-    email: user.email,
-    username: user.username,
-    ...status
-  });
+ res.json({
+  id: user.id,
+  email: user.email,
+  username: user.username,
+
+  plan: user.plan || 'free',
+  max_streams: user.max_streams || 1,
+
+  ...status
+});
 });
 
 module.exports = router;
