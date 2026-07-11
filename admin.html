@@ -49,7 +49,16 @@
     <div class="topbar"><h2>Foydalanuvchilar</h2></div>
     <div class="card" style="padding:0; overflow:hidden;">
       <table>
-        <thead><tr><th>Username</th><th>Email</th><th>Ro'yxatdan o'tgan</th><th>Holat</th></tr></thead>
+       <thead>
+<tr>
+<th>Username</th>
+<th>Email</th>
+<th>Ro'yxatdan o'tgan</th>
+<th>Holat</th>
+<th>Tarif</th>
+<th>Amal</th>
+</tr>
+</thead>
         <tbody id="usersBody"></tbody>
       </table>
     </div>
@@ -158,12 +167,38 @@ async function rejectPayment(id) {
 async function loadUsers() {
   const res = await fetch('/api/admin/users');
   const rows = await res.json();
+
   document.getElementById('usersBody').innerHTML = rows.map(u => `
     <tr>
       <td>${u.username || '—'}</td>
       <td>${u.email || '—'}</td>
       <td>${new Date(u.created_at).toLocaleDateString('uz-UZ')}</td>
-      <td>${u.hasAccess ? '<span class="badge badge-approved">Faol</span>' : '<span class="badge badge-rejected">Muddat tugagan</span>'}</td>
+
+      <td>
+        ${
+          u.hasAccess
+            ? '<span class="badge badge-approved">Faol</span>'
+            : '<span class="badge badge-rejected">Muddat tugagan</span>'
+        }
+      </td>
+
+      <td>
+        <span class="badge ${
+          (u.plan || 'free') === 'pro'
+            ? 'badge-approved'
+            : 'badge-pending'
+        }">
+          ${(u.plan || 'free').toUpperCase()}
+        </span>
+      </td>
+
+      <td>
+        ${
+          (u.plan || 'free') === 'pro'
+            ? `<button class="btn-outline" onclick="changePlan(${u.id}, 'free')">FREE qilish</button>`
+            : `<button class="btn-mint" onclick="changePlan(${u.id}, 'pro')">PRO qilish</button>`
+        }
+      </td>
     </tr>
   `).join('');
 }
@@ -184,7 +219,23 @@ async function logout() {
   await fetch('/api/admin/logout', { method: 'POST' });
   window.location.href = '/admin-login.html';
 }
+async function changePlan(userId, plan) {
+  const res = await fetch(`/api/admin/users/${userId}/plan`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ plan })
+  });
 
+  const data = await res.json();
+
+  if (data.success) {
+    loadUsers();
+  } else {
+    alert(data.error || 'Xatolik');
+  }
+}
 loadPayments('pending');
 </script>
 </body>
