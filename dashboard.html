@@ -236,16 +236,45 @@ async function uploadPlaylistVideo() {
 
   const data = await res.json();
 
-  document.getElementById(
-    'playlistStatus'
-  ).innerText =
-    data.success
-      ? '✅ Playlistga qo‘shildi'
-      : '❌ ' + data.error;
+if (data.success) {
+  document.getElementById('playlistStatus').innerText =
+    '✅ Playlistga qo‘shildi';
+
+  fileInput.value = '';
+
+  loadPlaylist();
+} else {
+  document.getElementById('playlistStatus').innerText =
+    '❌ ' + data.error;
+}
+  async function loadPlaylist() {
+  const res = await fetch('/api/playlist');
+  const files = await res.json();
+
+  const container =
+    document.getElementById('playlistList');
+
+  if (!files.length) {
+    container.innerHTML =
+      '<div style="color:gray;">Playlist bo‘sh</div>';
+    return;
+  }
+
+  container.innerHTML = files.map(file => `
+    <div style="
+      padding:8px;
+      margin:5px 0;
+      border:1px solid #ddd;
+      border-radius:8px;
+    ">
+      🎬 ${file}
+    </div>
+  `).join('');
 }
 checkAccess();
 setInterval(pollStatus, 2000);
 pollStatus();
+  loadPlaylist();
 </script>
 </body>
 </html>
