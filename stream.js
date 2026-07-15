@@ -59,13 +59,21 @@ router.post(
   requireActiveSubscriptionApi,
   playlistUpload.single('video'),
   (req, res) => {
-
     if (!req.file) {
       return res.status(400).json({
         error: 'Video topilmadi'
       });
-      router.get('/api/playlist', requireAuthApi, (req, res) => {
+    }
 
+    res.json({
+      success: true,
+      filename: req.file.filename
+    });
+  }
+);
+
+ 
+router.get('/api/playlist', requireAuthApi, (req, res) => {
   const playlistDir = path.join(
     UPLOAD_DIR,
     String(req.user.id),
@@ -80,8 +88,8 @@ router.post(
 
   res.json(files);
 });
-      router.delete('/api/playlist/:file', requireAuthApi, (req, res) => {
 
+router.delete('/api/playlist/:file', requireAuthApi, (req, res) => {
   const playlistDir = path.join(
     UPLOAD_DIR,
     String(req.user.id),
@@ -105,15 +113,6 @@ router.post(
     success: true
   });
 });
-    }
-
-    res.json({
-      success: true,
-      filename: req.file.filename
-    });
-  }
-);
-
 router.post('/api/stream/start', requireAuthApi, requireActiveSubscriptionApi, (req, res) => {
   const userId = req.user.id;
   const { streamKey } = req.body;
@@ -186,19 +185,5 @@ router.get('/api/stream/status', requireAuthApi, (req, res) => {
   if (!entry) return res.json({ running: false, log: [] });
   res.json({ running: true, startedAt: entry.startedAt, log: entry.log.slice(-5) });
 });
-router.get('/api/playlist', requireAuthApi, (req, res) => {
-  const playlistDir = path.join(
-    UPLOAD_DIR,
-    String(req.user.id),
-    'playlist'
-  );
 
-  if (!fs.existsSync(playlistDir)) {
-    return res.json([]);
-  }
-
-  const files = fs.readdirSync(playlistDir);
-
-  res.json(files);
-});
 module.exports = router;
