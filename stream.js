@@ -19,6 +19,32 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, 'current' + path.extname(file.originalname))
 });
 const upload = multer({ storage });
+const playlistStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const playlistDir = path.join(
+      UPLOAD_DIR,
+      String(req.user.id),
+      'playlist'
+    );
+
+    if (!fs.existsSync(playlistDir)) {
+      fs.mkdirSync(playlistDir, { recursive: true });
+    }
+
+    cb(null, playlistDir);
+  },
+
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      Date.now() + '_' + file.originalname
+    );
+  }
+});
+
+const playlistUpload = multer({
+  storage: playlistStorage
+});
 
 // Har bir foydalanuvchi uchun alohida ffmpeg jarayoni
 const activeStreams = {}; // { userId: { process, status } }
@@ -27,6 +53,25 @@ router.post('/api/upload', requireAuthApi, requireActiveSubscriptionApi, upload.
   if (!req.file) return res.status(400).json({ error: 'Video fayl topilmadi' });
   res.json({ success: true, path: req.file.filename });
 });
+router.post(
+  '/api/upload-playlist',
+  requireAuthApi,
+  requireActiveSubscriptionApi,
+  playlistUpload.single('video'),
+  (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'Video topilmadi'
+      });
+    }
+
+    res.json({
+      success: true,
+      filename: req.file.filename
+    });
+  }
+);
 
 router.post('/api/stream/start', requireAuthApi, requireActiveSubscriptionApi, (req, res) => {
   const userId = req.user.id;
