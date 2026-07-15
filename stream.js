@@ -64,6 +64,47 @@ router.post(
       return res.status(400).json({
         error: 'Video topilmadi'
       });
+      router.get('/api/playlist', requireAuthApi, (req, res) => {
+
+  const playlistDir = path.join(
+    UPLOAD_DIR,
+    String(req.user.id),
+    'playlist'
+  );
+
+  if (!fs.existsSync(playlistDir)) {
+    return res.json([]);
+  }
+
+  const files = fs.readdirSync(playlistDir);
+
+  res.json(files);
+});
+      router.delete('/api/playlist/:file', requireAuthApi, (req, res) => {
+
+  const playlistDir = path.join(
+    UPLOAD_DIR,
+    String(req.user.id),
+    'playlist'
+  );
+
+  const filePath = path.join(
+    playlistDir,
+    req.params.file
+  );
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({
+      error: 'Fayl topilmadi'
+    });
+  }
+
+  fs.unlinkSync(filePath);
+
+  res.json({
+    success: true
+  });
+});
     }
 
     res.json({
