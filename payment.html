@@ -18,6 +18,18 @@
   <div class="card">
     <div class="eyebrow">To'lov markazi</div>
     <h2>Obunani yangilash</h2>
+    <div style="margin:15px 0;">
+  <label>Tarifni tanlang</label>
+
+  <select id="planSelect">
+    <option value="basic">Basic — 30 000 so'm</option>
+    <option value="pro">PRO — 60 000 so'm</option>
+  </select>
+
+  <div style="margin-top:10px;font-size:13px;color:var(--text-dim);" id="planDescription">
+    Basic tarif: 1 ta stream.
+  </div>
+</div>
 
     <div class="chat-row">
       <div class="chat-avatar">SC</div>
@@ -65,6 +77,31 @@
 </div>
 
 <script>
+  document.getElementById('planSelect').addEventListener('change', function () {
+  const desc = document.getElementById('planDescription');
+  const amount = document.getElementById('amountText');
+
+  if (this.value === 'pro') {
+    amount.innerText = "60 000 so'm";
+
+    desc.innerHTML = `
+      <b>PRO tarif:</b><br>
+      ✅ 5 ta parallel stream<br>
+      ✅ Playlist (bir nechta video)<br>
+      ✅ Video analitikasi<br>
+      ✅ Auto Restart<br>
+      ✅ 1080p Full HD
+    `;
+  } else {
+    amount.innerText = "30 000 so'm";
+
+    desc.innerHTML = `
+      <b>Basic tarif:</b><br>
+      ✅ 1 ta stream<br>
+      ✅ Cheksiz video loop
+    `;
+  }
+});
 async function loadPaymentInfo() {
   const res = await fetch('/api/payment/info');
   if (res.status === 401) { window.location.href = '/login.html'; return; }
@@ -115,6 +152,7 @@ async function loadHistory() {
 
 loadPaymentInfo();
 loadHistory();
+  document.getElementById('planSelect').dispatchEvent(new Event('change'));
 </script>
 </body>
 </html>
