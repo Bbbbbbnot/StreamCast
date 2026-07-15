@@ -117,6 +117,7 @@ async function submitReceipt() {
   errorEl.innerText = '';
   if (!fileInput.files.length) { errorEl.innerText = 'Chek rasmini tanlang'; return; }
   const formData = new FormData();
+  const plan = document.getElementById('planSelect').value;
   formData.append('receipt', fileInput.files[0]);
   const res = await fetch('/api/payment/submit', { method: 'POST', body: formData });
   const data = await res.json();
