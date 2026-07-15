@@ -260,17 +260,49 @@ if (data.success) {
       '<div style="color:gray;">Playlist bo‘sh</div>';
     return;
   }
+    async function deletePlaylistFile(file) {
 
-  container.innerHTML = files.map(file => `
-    <div style="
-      padding:8px;
-      margin:5px 0;
-      border:1px solid #ddd;
-      border-radius:8px;
-    ">
-      🎬 ${file}
-    </div>
-  `).join('');
+  if (!confirm("Videoni o'chirishni tasdiqlaysizmi?")) {
+    return;
+  }
+
+  const res = await fetch(
+    '/api/playlist/' + encodeURIComponent(file),
+    {
+      method: 'DELETE'
+    }
+  );
+
+  const data = await res.json();
+
+  if (data.success) {
+    loadPlaylist();
+  } else {
+    alert(data.error || 'Xatolik');
+  }
+}
+
+ container.innerHTML = files.map(file => `
+  <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px;
+    margin:5px 0;
+    border:1px solid #ddd;
+    border-radius:8px;
+  ">
+    <span>🎬 ${file}</span>
+
+    <button
+      class="btn-outline"
+      onclick="deletePlaylistFile('${file}')"
+      style="width:auto;padding:6px 10px;"
+    >
+      🗑 O'chirish
+    </button>
+  </div>
+`).join('');
 }
 checkAccess();
 setInterval(pollStatus, 2000);
