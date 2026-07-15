@@ -40,6 +40,24 @@
     <p>Yuklangan video doimiy loop bo'lib efirga uzatiladi.</p>
     <input type="file" id="videoFile" accept="video/*">
     <button class="btn-outline" onclick="uploadVideo()">Videoni yuklash</button>
+    <div id="proPlaylistBlock" style="display:none;margin-top:15px;">
+  <hr style="margin:15px 0;">
+
+  <h3>PRO Playlist</h3>
+
+  <input type="file"
+         id="playlistVideo"
+         accept="video/*">
+
+  <button class="btn-outline"
+          onclick="uploadPlaylistVideo()">
+    ➕ Playlistga qo'shish
+  </button>
+
+  <div id="playlistStatus"
+       style="margin-top:10px;font-size:13px;color:var(--text-dim);">
+  </div>
+</div>
     <div class="progress-track" style="margin-top:14px;"><div class="progress-fill" id="progressFill"></div></div>
     <div id="uploadStatus" style="font-size:13px; color: var(--text-dim); margin-top:6px;"></div>
   </div>
@@ -86,6 +104,7 @@ async function checkAccess() {
 
     streamLimitInfo.innerHTML =
       'Maksimal streamlar: <b>5 ta</b>';
+    document.getElementById('proPlaylistBlock').style.display = 'block';
   } else {
     planInfo.innerHTML =
       '<span class="badge badge-pending">FREE</span>';
@@ -183,7 +202,39 @@ async function logout() {
   await fetch('/api/logout', { method: 'POST' });
   window.location.href = '/login.html';
 }
+async function uploadPlaylistVideo() {
+  const fileInput =
+    document.getElementById('playlistVideo');
 
+  if (!fileInput.files.length) {
+    alert('Video tanlang');
+    return;
+  }
+
+  const formData = new FormData();
+
+  formData.append(
+    'video',
+    fileInput.files[0]
+  );
+
+  const res = await fetch(
+    '/api/upload-playlist',
+    {
+      method: 'POST',
+      body: formData
+    }
+  );
+
+  const data = await res.json();
+
+  document.getElementById(
+    'playlistStatus'
+  ).innerText =
+    data.success
+      ? '✅ Playlistga qo‘shildi'
+      : '❌ ' + data.error;
+}
 checkAccess();
 setInterval(pollStatus, 2000);
 pollStatus();
