@@ -212,17 +212,29 @@ async function uploadPlaylistVideo() {
   }
 
   const formData = new FormData();
-  formData.append('video', fileInput.files[0]);
 
-  const res = await fetch('/api/upload-playlist', {
-    method: 'POST',
-    body: formData
-  });
+  formData.append(
+    'video',
+    fileInput.files[0]
+  );
 
-  console.log('STATUS:', res.status);
+  const res = await fetch(
+    '/api/upload-playlist',
+    {
+  method: 'POST',
+  credentials: 'same-origin',
+  body: formData
+}
+  );
 
-  const text = await res.text();
-  console.log('SERVER:', text);
+  const data = await res.json();
+
+  document.getElementById(
+    'playlistStatus'
+  ).innerText =
+    data.success
+      ? '✅ Playlistga qo‘shildi'
+      : '❌ ' + data.error;
 }
 checkAccess();
 setInterval(pollStatus, 2000);
