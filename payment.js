@@ -18,18 +18,45 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-const MONTHLY_FEE = 30000;
+const BASIC_FEE = 30000;
+const PRO_FEE = 60000;
 const CARD_NUMBER = process.env.PAYMENT_CARD_NUMBER || '0000 0000 0000 0000';
 const CARD_HOLDER = process.env.PAYMENT_CARD_HOLDER || 'Ism Familiya';
 
 router.get('/api/payment/info', requireAuthApi, (req, res) => {
-  res.json({ cardNumber: CARD_NUMBER, cardHolder: CARD_HOLDER, amount: MONTHLY_FEE });
+  res.json({
+    cardNumber: CARD_NUMBER,
+    cardHolder: CARD_HOLDER,
+    basicAmount: BASIC_FEE,
+    proAmount: PRO_FEE
+  });
 });
 
 router.post('/api/payment/submit', requireAuthApi, upload.single('receipt'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Chek rasmi kerak' });
-  db.createPayment({ user_id: req.user.id, amount: MONTHLY_FEE, receipt_path: req.file.filename });
-  res.json({ success: true });
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'Chek rasmi kerak' });
+  }
+
+  const plan = req.body.plan || 'basic';
+
+  const amount =
+    plan === 'pro'
+      ? PRO_FEE
+      : BASIC_FEE;
+
+  db.createPayment({
+    user_id: req.user.id,
+    amount,
+    plan,
+    receipt_path: req.file.filename
+  });
+
+  res.json({
+    success: true,
+    plan,
+    amount
+  });
 });
 
 router.get('/api/payment/history', requireAuthApi, (req, res) => {
