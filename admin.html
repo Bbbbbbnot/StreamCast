@@ -37,7 +37,7 @@
     </div>
     <div class="card" style="padding:0; overflow:hidden;">
       <table id="paymentsTable">
-        <thead><tr><th>Chek</th><th>Foydalanuvchi</th><th>Summa</th><th>Sana</th><th>Holat</th><th></th></tr></thead>
+        <thead><tr><th>Chek</th><th>Foydalanuvchi</th><th>Tarif</th><th>Summa</th><th>Sana</th><th>Holat</th><th></th></tr></thead>
         <tbody id="paymentsBody"></tbody>
       </table>
       <div class="empty-state" id="paymentsEmpty" style="display:none;">To'lovlar topilmadi</div>
@@ -132,7 +132,18 @@ async function loadPayments(status, btn) {
     <tr>
       <td><img class="receipt-thumb" src="/uploads/receipts/${p.receipt_path}" onclick="openImage('/uploads/receipts/${p.receipt_path}')"></td>
       <td>${p.username || '—'}<br><span style="color:var(--text-faint); font-size:11px;">${p.email || ''}</span></td>
-      <td style="font-family: var(--font-mono);">${p.amount.toLocaleString('uz-UZ')}</td>
+
+<td>
+  <span class="badge ${
+    (p.plan || 'basic') === 'pro'
+      ? 'badge-approved'
+      : 'badge-pending'
+  }">
+    ${(p.plan || 'basic').toUpperCase()}
+  </span>
+</td>
+
+<td style="font-family: var(--font-mono);">${p.amount.toLocaleString('uz-UZ')}</td>
       <td>${new Date(p.created_at).toLocaleString('uz-UZ')}</td>
       <td>${badge(p.status)}</td>
       <td>
