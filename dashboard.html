@@ -247,6 +247,7 @@ if (data.success) {
   document.getElementById('playlistStatus').innerText =
     '❌ ' + data.error;
 }
+}
   async function loadPlaylist() {
   const res = await fetch('/api/playlist');
   const files = await res.json();
