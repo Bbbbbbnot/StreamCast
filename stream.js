@@ -138,7 +138,8 @@ playlistFiles.forEach(file => {
 });
 
 fs.writeFileSync(playlistTxt, content);
-
+console.log('PLAYLIST:');
+console.log(content);
 const rtmpUrl = `rtmp://a.rtmp.youtube.com/live2/${streamKey}`;
  const args = [
   '-re',
