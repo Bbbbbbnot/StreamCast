@@ -105,10 +105,6 @@ function createPayment({ user_id, amount, plan = 'basic', receipt_path }) {
   save();
   return payment;
 }
-  state.payments.push(payment);
-  save();
-  return payment;
-}
 
 function findPaymentById(id) {
   return state.payments.find(p => p.id === Number(id)) || null;
