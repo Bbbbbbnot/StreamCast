@@ -88,17 +88,23 @@ function getAllUsers() {
 
 // ---------------- PAYMENTS ----------------
 
-function createPayment({ user_id, amount, receipt_path }) {
+function createPayment({ user_id, amount, plan = 'basic', receipt_path }) {
   const payment = {
     id: state.nextPaymentId++,
     user_id,
     amount,
+    plan,
     receipt_path,
     status: 'pending',
     note: null,
     created_at: new Date().toISOString(),
     reviewed_at: null
   };
+
+  state.payments.push(payment);
+  save();
+  return payment;
+}
   state.payments.push(payment);
   save();
   return payment;
@@ -137,6 +143,13 @@ function approvePayment(id) {
   const newPaidUntil = new Date(base);
   newPaidUntil.setDate(newPaidUntil.getDate() + 30);
   user.paid_until = newPaidUntil.toISOString();
+  if (payment.plan === 'pro') {
+  user.plan = 'pro';
+  user.max_streams = 5;
+} else {
+  user.plan = 'free';
+  user.max_streams = 1;
+}
 
   save();
   return { payment, paidUntil: user.paid_until };
