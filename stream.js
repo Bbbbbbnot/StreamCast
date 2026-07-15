@@ -83,11 +83,29 @@ router.post('/api/stream/start', requireAuthApi, requireActiveSubscriptionApi, (
   const files = fs.existsSync(userDir) ? fs.readdirSync(userDir).filter(f => f.startsWith('current')) : [];
   if (files.length === 0) return res.status(400).json({ error: 'Avval video yuklang' });
 
-  const videoPath = path.join(userDir, files[0]);
-  const rtmpUrl = `rtmp://a.rtmp.youtube.com/live2/${streamKey}`;
+  const playlistDir = path.join(userDir, 'playlist');
 
-  const args = [
-    '-re', '-stream_loop', '-1', '-i', videoPath,
+const playlistFiles = fs.existsSync(playlistDir)
+  ? fs.readdirSync(playlistDir)
+  : [];
+
+const playlistTxt = path.join(userDir, 'playlist.txt');
+
+let content = `file '${path.join(userDir, files[0]).replace(/\\/g, '/')}'\n`;
+
+playlistFiles.forEach(file => {
+  content += `file '${path.join(playlistDir, file).replace(/\\/g, '/')}'\n`;
+});
+
+fs.writeFileSync(playlistTxt, content);
+
+const rtmpUrl = `rtmp://a.rtmp.youtube.com/live2/${streamKey}`;
+ const args = [
+  '-re',
+  '-stream_loop', '-1',
+  '-f', 'concat',
+  '-safe', '0',
+  '-i', playlistTxt,
     '-vf', 'scale=1280:720', '-r', '30',
     '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
     '-b:v', '1500k', '-maxrate', '1500k', '-bufsize', '3000k',
