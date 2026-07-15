@@ -145,5 +145,19 @@ router.get('/api/stream/status', requireAuthApi, (req, res) => {
   if (!entry) return res.json({ running: false, log: [] });
   res.json({ running: true, startedAt: entry.startedAt, log: entry.log.slice(-5) });
 });
+router.get('/api/playlist', requireAuthApi, (req, res) => {
+  const playlistDir = path.join(
+    UPLOAD_DIR,
+    String(req.user.id),
+    'playlist'
+  );
 
+  if (!fs.existsSync(playlistDir)) {
+    return res.json([]);
+  }
+
+  const files = fs.readdirSync(playlistDir);
+
+  res.json(files);
+});
 module.exports = router;
